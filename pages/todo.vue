@@ -4,14 +4,14 @@
       <h1 class="font-semibold text-5xl text-white mb-5">Vue ToDo List</h1>
       <div class="bg-white rounded-lg shadow-lg">
         <div class="bg-gray-200 p-2 rounded-t-xs flex justify-end space-x-2">
-          <FilterButton label="Tasks" :count="1" />
-          <FilterButton label="Tasks Done" :count="1" />
-          <DeleteButton label="Tasks Done" :count="1" />
-          <DeleteButton label="Tasks" :count="1" />
+          <FilterButton label="Tasks" :count="countTodos" @click="filterAll" />
+          <FilterButton v-show="countDone > 0" label="Tasks Done" :count="countDone" @click="filterDone" />
+          <DeleteButton v-show="countDone > 0" label="Tasks Done" :count="1" @click="removeDone" />
+          <DeleteButton label="Tasks" @click="removeAll" />
         </div>
 
         <div class="p-4">
-          <TodoLists :todoList="todoList" v-if="todoList > 0" />
+          <TodoLists :todoList="todos" v-if="countTodos > 0" @setDone="setDone" @removeItem="removeItem" />
           <div v-else>No todo</div>
         </div>
         <div class="bg-gray-200 p-2 rounded-b-xs">
@@ -23,27 +23,59 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { storeToRefs } from "pinia";
-import { useTodosStore } from "~/store/todos";
+import { ref, computed, onMounted } from 'vue';
+import { useTodosStore } from "~/store/todos"
 
-const todosStore = useTodosStore();
-const { stateTodosStore } = storeToRefs(todosStore);
-const { loadTodos } = todosStore;
+const store = useTodosStore(); //initialize the store
+const todos = ref({})
 
-const todoList = ref({});
+const countTodos = computed(() => {
+  return store.todos.length;
+})
 
-function submit(task) {
-  loadTodos(task);
-}
-
-async function loadTodoLists() {
-  todoList.value = stateTodosStore.value;
-}
-
-onMounted(() => {
-  loadTodoLists();
+const countDone = computed(() => {
+  const filterDone = store.todos.filter((todo) => todo.status.done === true)
+  return filterDone.length;
 });
+
+onMounted(() => loadTodos())
+
+function loadTodos() {
+  todos.value = store.todos
+}
+
+function filterAll() {
+  todos.value = store.todos;
+}
+
+function filterDone() {
+  todos.value = store.todos.filter((todo) => todo.status.done === true)
+}
+
+function removeDone() {
+  store.todos = store.todos.filter((todo) => todo.status.done !== true)
+  loadTodos()
+}
+
+function removeItem(task) {
+  const index = store.todos.findIndex((todo) => todo.id === task.id)
+  store.todos.splice(index, 1)
+  loadTodos()
+}
+
+function removeAll() {
+  console.log("test");
+  store.todos = []
+  loadTodos()
+}
+
+function submit(value) {
+  store.ADD_TODO(value)
+}
+
+function setDone(value) {
+  store.UPDATE_TODO(value)
+}
 </script>
 
 <style></style>

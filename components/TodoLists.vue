@@ -8,6 +8,7 @@
       >
         <div
           class="bg-green-500 w-6 h-6 rounded-full flex items-center justify-center mr-2"
+          @click="emit('setDone', task)"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -24,8 +25,8 @@
             />
           </svg>
         </div>
-        <span class="font-bold">{{ task.name }}</span>
-        <button>
+        <span class="font-bold" :class="{'line-through':task.status.done}">{{ task.name }}</span>
+        <button @click="emit('removeItem', task)">
           <div class="absolute right-2 top-1/2 transform -translate-y-1/2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -50,6 +51,7 @@
 
 <script setup>
 const props = defineProps(["todoList"]);
+const emit = defineEmits(['setDone', 'removeItem']);
 </script>
 
 <style></style>
